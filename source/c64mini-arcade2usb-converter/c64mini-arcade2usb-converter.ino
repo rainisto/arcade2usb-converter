@@ -12,6 +12,7 @@
  */
 
 #include "joystick.h" 
+#include <EEPROM.h>
 
 // define buttons
 const int pin_joystick_up = 2;
@@ -27,6 +28,8 @@ const int pin_joystick_button_c = 10;
 
 
 int debounceDelay = 1; // debounce delay
+int value = 0; // A500 mode
+int counter = 0;
 
 void setup() {
   
@@ -40,18 +43,23 @@ void setup() {
   pinMode(pin_joystick_button_a, INPUT_PULLUP);       
   pinMode(pin_joystick_button_b, INPUT_PULLUP);       
   pinMode(pin_joystick_button_c, INPUT_PULLUP);       
+  // read A500 value
+  value = EEPROM.read(0);
 }
 
 void loop() {
   
   // Reset values for next loop..  
   Joystick.reset();
-  
+  counter = 0;
+
   // Button - Fire (1)
   if (digitalRead(pin_joystick_button1) == LOW) {
     
-    Joystick.button_press(0x40); 
+    if (value == 1) Joystick.button_press(0x4);
+    else Joystick.button_press(0x40);
     // see documentation to use other device
+    counter = counter+1;
   }
   
   // Button - Menu
@@ -59,6 +67,7 @@ void loop() {
     
     Joystick.button_press(0x0200);
     // see documentation to use other device
+    counter = counter+2;
   }
 
   // Button - C
@@ -80,6 +89,13 @@ void loop() {
     
     Joystick.button_press(0x4);
     // see documentation to use other device
+    if (counter == 1) {
+      value = 0;
+      EEPROM.write(0, 0);
+    } else if (counter == 3) {
+      value = 1;
+      EEPROM.write(0, 1);
+    }
   }
 
   // Button - Up
