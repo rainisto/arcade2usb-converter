@@ -28,8 +28,11 @@ const int pin_joystick_button_c = 10;
 
 
 int debounceDelay = 1; // debounce delay
-int value = 0; // A500 mode
+int value = 0;
 int counter = 0;
+int previous_b = 0;
+int previous_c = 0;
+int previous_fire = 0;
 
 void setup() {
   
@@ -55,11 +58,21 @@ void loop() {
 
   // Button - Fire (1)
   if (digitalRead(pin_joystick_button1) == LOW) {
-    
-    if (value == 1) Joystick.button_press(0x4);
-    else Joystick.button_press(0x40);
+    // if A500 mini
+    if (value == 1) {
+      if(previous_b == 0 && previous_fire == 0) {
+        Joystick.button_press(0x4); // send A, skip if sending Y or untill fire has been released when Y has triggered
+      } else {
+        // ignore while fire pressed down
+        previous_fire = 1; // Y has triggered so we wait untill fire button has been released
+      }
+    } else {
+      Joystick.button_press(0x40);
+    }
     // see documentation to use other device
     counter = counter+1;
+  } else {
+    previous_fire = 0;
   }
   
   // Button - Menu
@@ -72,16 +85,28 @@ void loop() {
 
   // Button - C
   if (digitalRead(pin_joystick_button_a) == LOW) {
-    
-    Joystick.button_press(0x0100);
+    if (value == 1 && previous_b == 1) {
+      Joystick.button_press(0x8);                      // Generate X event if B is already down
+    } else {
+      Joystick.button_press(0x0100);
+    }
     // see documentation to use other device
+    previous_c = 1;
+  } else {
+    previous_c = 0;
   }
   
   // Button - B (not in use at this moment)
   if (digitalRead(pin_joystick_button_b) == LOW) {
-    
-    Joystick.button_press(0x2);
+    if (value == 1 && counter == 1) {
+      Joystick.button_press(0x1);                      // Send Y, if joystick fire is pressed at same time
+    } else {
+      if (previous_c == 0) Joystick.button_press(0x2); // skip B if C has been pressed (X event was generated instead)
+    }
     // see documentation to use other device
+    previous_b = 1;
+  } else {
+    previous_b = 0;
   }
 
   // Button - A
