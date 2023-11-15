@@ -10,6 +10,7 @@ See change log for history.
 
 The repository also includes designs for a case to be 3D printed, as well as some Windows based tools used during debugging and development.
 
+![Picture of case with label](https://github.com/rainisto/arcade2usb-converter/blob/new-buttons/IMG_20231115_174526.jpg?raw=true)
 
 Documentation
 =============
